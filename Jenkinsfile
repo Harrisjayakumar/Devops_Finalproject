@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Registry & image info
         DOCKER_REGISTRY = 'docker.io'
-        DOCKER_IMAGE_NAME = 'harris/jenkinsrepo'
+        DOCKER_IMAGE_NAME = 'harrisjayakumar/jenkinsrepo'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
         KUBERNETES_NAMESPACE = 'default'
         APP_NAME = 'react-frontend'
