@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Environment variables
+        // Registry & image info
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_IMAGE_NAME = 'harris/jenkinsrepo'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
@@ -10,7 +10,7 @@ pipeline {
         APP_NAME = 'react-frontend'
         HELM_CHART_PATH = './helm-chart'
 
-        // Git repository info
+        // Repository
         GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
     }
@@ -44,17 +44,22 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
+                    '''
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([string(credentialsId: 'docker', variable: 'DOCKER_HUB_TOKEN')]) {
-                    sh """
-                        echo ${DOCKER_HUB_TOKEN} | docker login ${DOCKER_REGISTRY} -u kirubarp --password-stdin
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-                    """
+                    '''
                 }
             }
         }
@@ -62,14 +67,14 @@ pipeline {
         stage('Deploy to Kubernetes with Helm') {
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig']) {
-                    sh """
+                    sh '''
                         helm upgrade --install ${APP_NAME} ${HELM_CHART_PATH} \
                           --namespace ${KUBERNETES_NAMESPACE} --create-namespace \
                           --set image.repository=${DOCKER_IMAGE_NAME} \
                           --set image.tag=${DOCKER_IMAGE_TAG}
-                        
+
                         kubectl rollout status deployment/${APP_NAME} -n ${KUBERNETES_NAMESPACE}
-                    """
+                    '''
                 }
             }
         }
