@@ -45,10 +45,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    sh """
+                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
                         docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
-                    '''
+                    """
                 }
             }
         }
@@ -56,10 +56,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    sh """
+                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
                         docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
-                    '''
+                    """
                 }
             }
         }
@@ -67,14 +67,14 @@ pipeline {
         stage('Deploy to Kubernetes with Helm') {
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig']) {
-                    sh '''
+                    sh """
                         helm upgrade --install ${APP_NAME} ${HELM_CHART_PATH} \
                           --namespace ${KUBERNETES_NAMESPACE} --create-namespace \
                           --set image.repository=${DOCKER_IMAGE_NAME} \
                           --set image.tag=${DOCKER_IMAGE_TAG}
 
                         kubectl rollout status deployment/${APP_NAME} -n ${KUBERNETES_NAMESPACE}
-                    '''
+                    """
                 }
             }
         }
