@@ -4,14 +4,14 @@ pipeline {
     environment {
         // Define environment variables
         DOCKER_REGISTRY = 'docker.io'
-        DOCKER_IMAGE_NAME = 'kirubarp/jenkinsrepo'  // Updated Docker image name
+        DOCKER_IMAGE_NAME = 'harris/jenkinsrepo'  // Updated Docker image name
         DOCKER_IMAGE_TAG = "${env.BUILD_NUMBER}"
         KUBERNETES_NAMESPACE = 'default'
         APP_NAME = 'react-frontend'
         HELM_CHART_PATH = './helm-chart'
 
         // Git repository information
-        GIT_REPO_URL = 'https://github.com/Kiruba-Prakasan/JenkinsProj.git'
+        GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
     }
 
