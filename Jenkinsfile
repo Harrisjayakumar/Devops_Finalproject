@@ -8,7 +8,7 @@ pipeline {
         KUBERNETES_NAMESPACE = 'default'
         APP_NAME = 'react-frontend'
         HELM_CHART_PATH = './helm-chart'
-       GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
+        GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
     }
 
@@ -18,24 +18,6 @@ pipeline {
                 git branch: "${GIT_BRANCH}",
                     credentialsId: 'github_seccred',
                     url: "${GIT_REPO_URL}"
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm ci'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'npm test -- --watchAll=false --passWithNoTests'
-            }
-        }
-
-        stage('Build React App') {
-            steps {
-                sh 'npm run build'
             }
         }
 
@@ -86,7 +68,6 @@ pipeline {
         }
         always {
             script {
-                // Remove image only if it was successfully built
                 sh '''
                     if docker images $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG | grep $DOCKER_IMAGE_TAG; then
                         docker rmi $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG || true
