@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Registry & image info
+        // Docker details
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_IMAGE_NAME = 'harrisjayakumar/jenkinsrepo'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
@@ -10,7 +10,7 @@ pipeline {
         APP_NAME = 'react-frontend'
         HELM_CHART_PATH = './helm-chart'
 
-        // Repository
+        // GitHub repo
         GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
     }
@@ -66,15 +66,21 @@ pipeline {
 
         stage('Deploy to Kubernetes with Helm') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig']) {
-                    sh """
-                        helm upgrade --install ${APP_NAME} ${HELM_CHART_PATH} \
-                          --namespace ${KUBERNETES_NAMESPACE} --create-namespace \
-                          --set image.repository=${DOCKER_IMAGE_NAME} \
-                          --set image.tag=${DOCKER_IMAGE_TAG}
+                script {
+                    try {
+                        withKubeConfig([credentialsId: 'kubeconfig']) {
+                            sh """
+                                helm upgrade --install ${APP_NAME} ${HELM_CHART_PATH} \
+                                  --namespace ${KUBERNETES_NAMESPACE} --create-namespace \
+                                  --set image.repository=${DOCKER_IMAGE_NAME} \
+                                  --set image.tag=${DOCKER_IMAGE_TAG}
 
-                        kubectl rollout status deployment/${APP_NAME} -n ${KUBERNETES_NAMESPACE}
-                    """
+                                kubectl rollout status deployment/${APP_NAME} -n ${KUBERNETES_NAMESPACE}
+                            """
+                        }
+                    } catch (err) {
+                        error "Helm deployment failed: ${err}"
+                    }
                 }
             }
         }
@@ -88,7 +94,9 @@ pipeline {
             echo '❌ React app deployment failed!'
         }
         always {
-            sh "docker rmi ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} || true"
+            script {
+                sh "docker rmi ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} || true"
+            }
         }
     }
 }
