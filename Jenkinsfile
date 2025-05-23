@@ -10,6 +10,7 @@ pipeline {
         HELM_CHART_PATH = './helm-chart'
         GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -45,16 +46,14 @@ pipeline {
 
         stage('Deploy to Kubernetes with Helm') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig']) {
-                    sh '''
-                        helm upgrade --install $APP_NAME $HELM_CHART_PATH \
-                          --namespace $KUBERNETES_NAMESPACE --create-namespace \
-                          --set image.repository=$DOCKER_IMAGE_NAME \
-                          --set image.tag=$DOCKER_IMAGE_TAG
+                sh '''
+                    helm upgrade --install $APP_NAME $HELM_CHART_PATH \
+                      --namespace $KUBERNETES_NAMESPACE --create-namespace \
+                      --set image.repository=$DOCKER_IMAGE_NAME \
+                      --set image.tag=$DOCKER_IMAGE_TAG
 
-                        kubectl rollout status deployment/$APP_NAME -n $KUBERNETES_NAMESPACE
-                    '''
-                }
+                    kubectl rollout status deployment/$APP_NAME -n $KUBERNETES_NAMESPACE
+                '''
             }
         }
     }
