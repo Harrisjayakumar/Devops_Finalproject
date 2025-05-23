@@ -8,7 +8,7 @@ pipeline {
         KUBERNETES_NAMESPACE = 'default'
         APP_NAME = 'react-frontend'
         HELM_CHART_PATH = './helm-chart'
-        GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
+       GIT_REPO_URL = 'https://github.com/Harrisjayakumar/Devops_Finalproject'
         GIT_BRANCH = 'main'
     }
 
